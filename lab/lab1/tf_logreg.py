@@ -79,11 +79,11 @@ if __name__ == "__main__":
     tf.set_random_seed(100)
 
     # instanciraj podatke X i labele Yoh_
-    X, Y_ = sample_gauss(2, 100)
+    X, Y_ = sample_gauss(3, 100)
     Yoh_ = class_to_onehot(Y_)
 
     # izgradi graf:
-    tflr = TFLogreg(X.shape[1], Yoh_.shape[1], 1, 1e-3)
+    tflr = TFLogreg(X.shape[1], Yoh_.shape[1], 0.5, 1e-3)
 
     # nauči parametre:
     tflr.train(X, Yoh_, 10000)
@@ -94,8 +94,8 @@ if __name__ == "__main__":
     print(Y)
     print(Y_)
     # ispiši performansu (preciznost i odziv po razredima)
-    #accuracy, pr, M = eval_perf_multi(probs, Y_)
-    #print(pr)
+    accuracy, pr, M = eval_perf_multi(Y, Y_)
+    print(accuracy, pr)
 
     # iscrtaj rezultate, decizijsku plohu
     rect = (np.min(X, axis=0), np.max(X, axis=0))
