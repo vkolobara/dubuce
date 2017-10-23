@@ -47,7 +47,7 @@ class TFDeep:
     for w in self.w:
         self.reg += tf.norm(w) * param_lambda
 
-    self.loss = tf.reduce_mean(-tf.reduce_sum(self.Y*tf.log(self.probs), reduction_indices=1) \
+    self.loss = tf.reduce_mean(-tf.reduce_sum(self.Y*tf.log(tf.clip_by_value(self.probs, 1e-6, 1.0)), reduction_indices=1) \
                 + self.reg)
 
     # formulacija operacije učenja: self.train_step
@@ -102,7 +102,7 @@ if __name__ == "__main__":
     Yoh_ = class_to_onehot(Y_)
 
     # izgradi graf:
-    tflr = TFDeep([2, 10, 10, 2], .05, 1e-3)
+    tflr = TFDeep([2, 10, 10, 2], .1, 1e-3)
 
     # nauči parametre:
     tflr.train(X, Yoh_, 10000)
