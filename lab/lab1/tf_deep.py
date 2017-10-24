@@ -1,6 +1,7 @@
 import tensorflow as tf
 import numpy as np
 from lab.lab1.data import *
+from sklearn.utils import shuffle
 
 class TFDeep:
   def __init__(self, layers, param_delta=0.5, param_lambda=1e-3):
@@ -54,7 +55,7 @@ class TFDeep:
     #   koristiti: tf.train.GradientDescentOptimizer,
     #              tf.train.GradientDescentOptimizer.minimize
     # ...
-    self.train_step = tf.train.GradientDescentOptimizer(learning_rate=param_delta).minimize(self.loss)
+    self.train_step = tf.train.AdamOptimizer(learning_rate=param_delta).minimize(self.loss)
 
     # instanciranje izvedbenog konteksta: self.session
     #   koristiti: tf.Session
@@ -81,6 +82,16 @@ class TFDeep:
         _, l = self.session.run([self.train_step, self.loss], feed_dict={self.X: X, self.Y: Yoh_})
         print(l)
 
+  def train_mb(self, X, Yoh_, param_niter, n_batches):
+    initializer = tf.global_variables_initializer()
+    self.session.run(initializer)
+    for i in range(param_niter):
+        X_shuffle, Y_shuffle = shuffle(X, Yoh_)
+        batch_X = np.split(X_shuffle, n_batches)
+        batch_Y = np.split(Y_shuffle, n_batches)
+        for j in range(n_batches):
+            _, l = self.session.run([self.train_step, self.loss], feed_dict={self.X: batch_X[j], self.Y: batch_Y[j]})
+        print(l)
 
   def eval(self, X):
     """Arguments:
@@ -105,7 +116,7 @@ if __name__ == "__main__":
     tflr = TFDeep([2, 10, 10, 2], .1, 1e-3)
 
     # nauči parametre:
-    tflr.train(X, Yoh_, 10000)
+    tflr.train_mb(X, Yoh_, 10000, 10)
     print(Yoh_)
     # dohvati vjerojatnosti na skupu za učenje
     probs = tflr.eval(X)
