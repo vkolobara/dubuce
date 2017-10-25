@@ -30,7 +30,7 @@ def fcann2_train(x, y, num_hidden=5):
     b2 = np.random.randn(1, 2)
     Yoh_ = class_to_onehot(y)
 
-    for i in range(100000):
+    for i in range(10000):
         (s1, h1, s2, p) = forward_pass(x, (w1, w2), (b1, b2))
 
         reg = np.sum(np.linalg.norm(w1))
@@ -88,7 +88,7 @@ np.random.seed()
 #Y_ = np.array([0, 1, 1, 0])
 
 param_niter = int(1e3)
-param_delta = 0.001
+param_delta = 0.0001
 param_lambda = 0.00001
 
 w, b = fcann2_train(X, Y_)
