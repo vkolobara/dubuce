@@ -42,7 +42,8 @@ def fcann2_train(x, y, num_hidden=5):
         data_loss += param_lambda / 2 * (np.sum(np.square(w1)) + np.sum(np.square(w2)))
         loss = 1. / N * data_loss
 
-        print(loss)
+        if i % 1000 == 0:
+            print("Loss at %d: %f" % (i, loss))
 
         d_L = p - Yoh_
 
@@ -81,7 +82,7 @@ def logloss(true_label, predicted, eps=1e-15):
     return -np.log(1 - p)
 
 np.random.seed(100)
-X, Y_ = sample_gmm(6, 2, 10)
+X, Y_ = sample_gmm(6, 2, 100)
 np.random.seed()
 
 #X = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])

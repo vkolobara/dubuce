@@ -20,7 +20,6 @@ class TFDeep:
     self.w = []
     self.b = []
 
-
     activations = [tf.nn.relu] * (len(layers) - 2)
     activations += [tf.nn.softmax]
 
@@ -57,7 +56,6 @@ class TFDeep:
     # ...
 
     self.train_step = tf.train.GradientDescentOptimizer(learning_rate=param_delta).minimize(self.loss)
-    self.train_a = tf.train.GradientDescentOptimizer(learning_rate=param_delta)
 
     # instanciranje izvedbenog konteksta: self.session
     #   koristiti: tf.Session
@@ -78,13 +76,11 @@ class TFDeep:
     # optimizacijska petlja
     #   koristiti: tf.Session.run
     # ...
-    grads = self.train_a.compute_gradients(self.loss, [self.w[0], self.b[0]])
 
     self.session.run(initializer)
-    print(self.session.run(self.w[1]))
-    for i in range(1):
-        l, grads, p, w1 = self.session.run([self.loss, grads, self.probs, self.w[0]], feed_dict={self.X: X, self.Y: Yoh_})
-        print(l, grads)
+    for i in range(param_niter):
+        l = self.session.run(self.loss, feed_dict={self.X: X, self.Y: Yoh_})
+        print(l)
 
   def train_mb(self, X, Yoh_, param_niter, n_batches):
     initializer = tf.global_variables_initializer()
@@ -117,10 +113,10 @@ if __name__ == "__main__":
     Yoh_ = class_to_onehot(Y_)
 
     # izgradi graf:
-    tflr = TFDeep([2, 5, 2], .05, 1e-3)
+    tflr = TFDeep([2, 10, 10, 2], 0.1, 1e-4)
 
     # nauči parametre:
-    tflr.train(X, Yoh_, 10000)
+    tflr.train_mb(X, Yoh_, 10000, 10)
     print(Yoh_)
     # dohvati vjerojatnosti na skupu za učenje
     probs = tflr.eval(X)
