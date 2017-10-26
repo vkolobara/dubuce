@@ -45,10 +45,10 @@ class TFDeep:
 
     self.reg = 0
     for w in self.w:
-        self.reg += tf.norm(w) * param_lambda
+        self.reg += param_lambda * tf.nn.l2_loss(w)
 
-    self.loss = tf.reduce_mean(-tf.reduce_sum(self.Y*tf.log(tf.clip_by_value(self.probs, 1e-15, 1.0)), reduction_indices=1) \
-                + self.reg)
+    self.loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(self.probs, self.Y)) \
+                + self.reg
 
     # formulacija operacije učenja: self.train_step
     #   koristiti: tf.train.GradientDescentOptimizer,
@@ -104,19 +104,19 @@ class TFDeep:
 if __name__ == "__main__":
     # inicijaliziraj generatore slučajnih brojeva
     np.random.seed(100)
-    tf.set_random_seed(100)
 
     # instanciraj podatke X i labele Yoh_
     #X, Y_ = sample_gauss(2, 100)
     X, Y_ = sample_gmm(6, 2, 10)
 
+    np.random.seed()
     Yoh_ = class_to_onehot(Y_)
 
     # izgradi graf:
-    tflr = TFDeep([2, 10, 10, 2], 0.1, 1e-4)
+    tflr = TFDeep([2, 10, 10, 2], 0.001, 1e-4)
 
     # nauči parametre:
-    tflr.train_mb(X, Yoh_, 10000, 10)
+    tflr.train_mb(X, Yoh_, 1000, 10)
     print(Yoh_)
     # dohvati vjerojatnosti na skupu za učenje
     probs = tflr.eval(X)
