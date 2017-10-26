@@ -36,7 +36,6 @@ def fcann2_train(x, y, num_hidden=5):
         probs = np.clip(p, 1e-15, 1 - 1e-15)
         cross_entropy = -np.log(probs[range(N), y])
         loss = np.sum(cross_entropy)
-
         loss = 1. / N * loss
         loss += param_lambda * (np.linalg.norm(w1) + np.linalg.norm(w2))
 

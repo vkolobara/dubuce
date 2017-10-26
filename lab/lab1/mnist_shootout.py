@@ -16,12 +16,12 @@ import lab.lab1.tf_deep as tf_deep
 
 #tflr.train_mb(mnist.train.images, mnist.train.labels, 100, 10)
 
-#tf_deep.test(mnist.train.images, np.argmax(mnist.train.labels, axis=1), [784, 10])
+tf_deep.test(mnist.train.images, np.argmax(mnist.train.labels, axis=1), [784, 10])
 #tf_deep.test(mnist.train.images, mnist.train.labels, [784, 100, 10])
 
 Y_ = np.argmax(mnist.train.labels, axis=1)
 
-ksvm = KSVMWrap(mnist.train.images, Y_)
+#ksvm = KSVMWrap(mnist.train.images, Y_)
 
 # nauči parametre:
 # dohvati vjerojatnosti na skupu za učenje
