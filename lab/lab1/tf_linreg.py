@@ -16,7 +16,7 @@ Y = a * X + b
 loss = (Y - Y_) ** 2
 
 # optimizacijski postupak: gradijentni spust
-trainer = tf.train.GradientDescentOptimizer(0.001)
+trainer = tf.train.GradientDescentOptimizer(0.000000002)
 
 
 # izracunaj gradijente sa tensorflowom
@@ -33,16 +33,19 @@ dA = tf.reduce_sum(2 * (Y - Y_) * X)
 
 ## 2. inicijalizacija parametara
 sess = tf.Session()
-sess.run(tf.initialize_all_variables())
+sess.run(tf.global_variables_initializer())
 
 
 ## 3. učenje
 # neka igre počnu!
 
-for i in range(100):
-    val_loss, _, val_a, val_b, gs, d_a, d_b = sess.run([loss, train_op, a, b, grads, dA, dB], feed_dict={X: [1, 2, 3, 4, 5, 6, 7, 8, 9], Y_: [3, 5, 7, 9, 11, 13, 15, 17, 19]})
-    print(i, val_loss, val_a, val_b, gs, (d_a, d_b))
+X_train = range(1, 1000)
+Y_train = [x*2.0 + 1.0 for x in X_train]
+
+for i in range(1000):
+    val_loss, _, val_a, val_b = sess.run([loss, train_op, a, b], feed_dict={X: X_train, Y_: Y_train})
+    print(i, val_loss, val_a, val_b)
     p1 = tf.Print(loss, [grads], message="Gradijenti tensorflow: ")
     p2 = tf.Print(loss, [dA, dB], message="Gradijenti rucno: ")
-    sess.run([p1, p2], feed_dict={X: [1, 2], Y_: [3, 5]})
+    sess.run([p1, p2], feed_dict={X: X_train, Y_: Y_train})
     print("")

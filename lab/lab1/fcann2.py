@@ -23,24 +23,22 @@ def fcann2_train(x, y, num_hidden=5):
     D = len(x[0])
     N = len(x)
 
-    w1 = np.random.randn(D, num_hidden)
-    b1 = np.random.randn(1, num_hidden)
+    w1 = np.random.normal(scale=0.1, size=(D, num_hidden))
+    b1 = np.random.normal(scale=0.1, size=(1, num_hidden))
 
     w2 = np.random.randn(num_hidden, 2)
     b2 = np.random.randn(1, 2)
     Yoh_ = class_to_onehot(y)
 
-    for i in range(10000):
+    for i in range(param_niter):
         (s1, h1, s2, p) = forward_pass(x, (w1, w2), (b1, b2))
 
-        reg = np.sum(np.linalg.norm(w1))
-        reg += np.sum(np.linalg.norm(w2))
         probs = np.clip(p, 1e-15, 1 - 1e-15)
-        corect_logprobs = -np.log(probs[range(N), y])
-        data_loss = np.sum(corect_logprobs)
-        # Add regulatization term to loss (optional)
-        data_loss += param_lambda / 2 * (np.sum(np.square(w1)) + np.sum(np.square(w2)))
-        loss = 1. / N * data_loss
+        cross_entropy = -np.log(probs[range(N), y])
+        loss = np.sum(cross_entropy)
+
+        loss = 1. / N * loss
+        loss += param_lambda * (np.linalg.norm(w1) + np.linalg.norm(w2))
 
         if i % 1000 == 0:
             print("Loss at %d: %f" % (i, loss))
@@ -73,28 +71,19 @@ def softmax(x):
 def relu(x):
     return x * (x > 0)
 
-
-def logloss(true_label, predicted, eps=1e-15):
-  p = np.clip(predicted, eps, 1 - eps)
-  if true_label == 1:
-    return -np.log(p)
-  else:
-    return -np.log(1 - p)
-
 np.random.seed(100)
-X, Y_ = sample_gmm(6, 2, 100)
+X, Y_ = sample_gmm(6, 2, 10)
 np.random.seed()
 
 #X = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
 #Y_ = np.array([0, 1, 1, 0])
 
-param_niter = int(1e3)
-param_delta = 0.0001
-param_lambda = 0.00001
+param_niter = int(1e5)
+param_delta = 0.001
+param_lambda = 0.1
 
 w, b = fcann2_train(X, Y_)
 # get the class predictions
-print(fcann2_classify(X, w, b))
 Y = np.array(fcann2_classify(X, w, b) >= 0.5, dtype=int)
 
 # graph the decision surface
@@ -107,5 +96,3 @@ print(accuracy)
 # graph the data points
 graph_data(X, Y_, Y, special=[])
 plt.show()
-print(Y_)
-print(Y)

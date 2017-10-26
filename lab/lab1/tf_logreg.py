@@ -17,8 +17,8 @@ class TFLogreg:
     self.X = tf.placeholder(dtype=tf.float32, shape=[None, D], name="X")
     self.Yoh_ = tf.placeholder(dtype=tf.float32, shape=[None, C], name="Y")
 
-    self.W = tf.get_variable("W", shape=(D, C), initializer=tf.random_normal_initializer())
-    self.b = tf.get_variable("b", shape=(C,), initializer=tf.zeros_initializer())
+    self.W = tf.get_variable("W", shape=(D, C), initializer=tf.random_normal_initializer(stddev=0.1))
+    self.b = tf.get_variable("b", shape=(C,), initializer=tf.random_normal_initializer(stddev=0.1))
 
     # formulacija modela: izračunati self.probs
     #   koristiti: tf.matmul, tf.nn.softmax
@@ -29,9 +29,9 @@ class TFLogreg:
     # formulacija gubitka: self.loss
     #   koristiti: tf.log, tf.reduce_sum, tf.reduce_mean
     # ...
-    self.reg = tf.norm(self.W) * param_lambda
-    self.loss = tf.reduce_mean(-tf.reduce_sum(self.Yoh_*tf.log(self.probs), reduction_indices=1) \
-                + self.reg)
+    self.reg = tf.nn.l2_loss(self.W) * param_lambda
+    self.loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=self.probs, labels=self.Yoh_)) \
+                + self.reg
 
     # formulacija operacije učenja: self.train_step
     #   koristiti: tf.train.GradientDescentOptimizer,
@@ -61,8 +61,10 @@ class TFLogreg:
 
     self.session.run(initializer)
     for i in range(param_niter):
-        _, l, reg = self.session.run([self.train_step, self.loss, self.reg], feed_dict={self.X: X, self.Yoh_: Yoh_})
-        print(l, reg)
+        _, l = self.session.run([self.train_step, self.loss], feed_dict={self.X: X, self.Yoh_: Yoh_})
+        if i % 1000 == 0:
+            print("Loss at %d: %f" % (i, l))
+
 
 
   def eval(self, X):
@@ -76,14 +78,15 @@ class TFLogreg:
 if __name__ == "__main__":
     # inicijaliziraj generatore slučajnih brojeva
     np.random.seed(100)
-    tf.set_random_seed(100)
+    #tf.set_random_seed(100)
 
     # instanciraj podatke X i labele Yoh_
     X, Y_ = sample_gauss(3, 100)
     Yoh_ = class_to_onehot(Y_)
+    np.random.seed()
 
     # izgradi graf:
-    tflr = TFLogreg(X.shape[1], Yoh_.shape[1], 0.5, 1e-3)
+    tflr = TFLogreg(X.shape[1], Yoh_.shape[1], 0.1, 1e-3)
 
     # nauči parametre:
     tflr.train(X, Yoh_, 10000)
@@ -91,11 +94,9 @@ if __name__ == "__main__":
     # dohvati vjerojatnosti na skupu za učenje
     probs = tflr.eval(X)
     Y = np.argmax(probs, axis=1)
-    print(Y)
-    print(Y_)
     # ispiši performansu (preciznost i odziv po razredima)
     accuracy, pr, M = eval_perf_multi(Y, Y_)
-    print(accuracy, pr)
+    print(accuracy)
 
     # iscrtaj rezultate, decizijsku plohu
     rect = (np.min(X, axis=0), np.max(X, axis=0))
