@@ -16,7 +16,7 @@ import lab.lab1.tf_deep as tf_deep
 
 #tflr.train_mb(mnist.train.images, mnist.train.labels, 100, 10)
 
-tf_deep.test(mnist.train.images, np.argmax(mnist.train.labels, axis=1), [784, 10])
+tflr = tf_deep.test(mnist.train.images, np.argmax(mnist.train.labels, axis=1), [784, 10], param_niter=10)
 #tf_deep.test(mnist.train.images, mnist.train.labels, [784, 100, 10])
 
 Y_ = np.argmax(mnist.train.labels, axis=1)
@@ -25,8 +25,8 @@ Y_ = np.argmax(mnist.train.labels, axis=1)
 
 # nauči parametre:
 # dohvati vjerojatnosti na skupu za učenje
-probs = ksvm.get_scores(X)
-Y = ksvm.predict(X)
+#probs = ksvm.get_scores(X)
+#Y = ksvm.predict(X)
 
 # ispiši performansu (preciznost i odziv po razredima)
 accuracy, pr, M = eval_perf_multi(Y, Y_)

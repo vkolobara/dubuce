@@ -93,7 +93,7 @@ class TFDeep:
     self.session.run(initializer)
     for i in range(param_niter):
         _, l = self.session.run([self.train_step, self.loss], feed_dict={self.X: X, self.Y: Yoh_})
-        if i % 1000 == 0:
+        if i % 10 == 0:
             print("Loss at %d: %f" % (i, l))
 
   def train_mb(self, X, Yoh_, param_niter, n_batches):
@@ -137,8 +137,10 @@ def test(X, Y_, configuration, param_niter=10000, param_delta=0.1, param_lambda=
     # iscrtaj rezultate, decizijsku plohu
     rect = (np.min(X, axis=0), np.max(X, axis=0))
 
-    graph_surface(lambda x: np.argmax(tflr.eval(x), axis=1), rect, offset=0)
-    graph_data(X, Y_, Y, special=[])
+    #graph_surface(lambda x: np.argmax(tflr.eval(x), axis=1), rect, offset=0)
+    #graph_data(X, Y_, Y, special=[])
+
+    return tflr
 
 if __name__ == "__main__":
     # inicijaliziraj generatore slučajnih brojeva

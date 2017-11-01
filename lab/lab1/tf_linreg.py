@@ -16,7 +16,7 @@ Y = a * X + b
 loss = (Y - Y_) ** 2
 
 # optimizacijski postupak: gradijentni spust
-trainer = tf.train.GradientDescentOptimizer(0.000000002)
+trainer = tf.train.GradientDescentOptimizer(0.1)
 
 
 # izracunaj gradijente sa tensorflowom
@@ -39,7 +39,7 @@ sess.run(tf.global_variables_initializer())
 ## 3. učenje
 # neka igre počnu!
 
-X_train = range(1, 1000)
+X_train = range(1, 5)
 Y_train = [x*2.0 + 1.0 for x in X_train]
 
 for i in range(1000):
