@@ -102,3 +102,7 @@ ENV/
 
 .idea
 mnist_data
+/lab/lab2/mnist/
+/lab/lab2/im2col_cython.cpython-36m-x86_64-linux-gnu.so
+/lab/lab2/build/
+/lab/lab2/save/
