@@ -107,3 +107,4 @@ mnist_data
 /lab/lab2/build/
 /lab/lab2/save/
 /lab/lab2/save_reg/
+*.zip
