@@ -108,3 +108,7 @@ mnist_data
 /lab/lab2/save/
 /lab/lab2/save_reg/
 *.zip
+/lab/lab2/save_cifar_filter/
+/lab/lab2/save_cifar_plots/
+/lab/lab2/cifar10/
+/lab/lab2/save_tf_reg/

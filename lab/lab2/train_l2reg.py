@@ -12,7 +12,7 @@ DATA_DIR = 'mnist'
 SAVE_DIR = "save_reg"
 
 config = {}
-config['max_epochs'] = 8
+config['max_epochs'] = 20
 config['batch_size'] = 50
 config['save_dir'] = SAVE_DIR
 config['weight_decay'] = 1e-3
