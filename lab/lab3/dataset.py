@@ -57,33 +57,19 @@ class Dataset(object):
         else:
             y = self.x[1: self.num_batches * batch_seq_size + 1]
 
-        x = np.stack(np.split(x, self.batch_size))
-        y = np.stack(np.split(y, self.batch_size))
+        x = np.stack(np.split(x, self.num_batches))
+        y = np.stack(np.split(y, self.num_batches))
 
         self.batches = np.array(list(zip(x, y)))
 
     def next_minibatch(self):
-        self.current_batch = (self.current_batch + 1) % (self.num_batches*self.batch_size)
-        batch_index = self.current_batch // self.num_batches
-        seq_index = self.current_batch % self.num_batches
+        self.current_batch = (self.current_batch + 1) % self.num_batches
 
         new_epoch = self.current_batch == 0
 
-        batch_x, batch_y = self.batches[batch_index]
+        batch_x, batch_y = self.batches[self.current_batch]
 
-        batch_x = batch_x[seq_index*self.sequence_length : (seq_index+1)*self.sequence_length]
-        batch_y = batch_y[seq_index*self.sequence_length : (seq_index+1)*self.sequence_length]
+        batch_x = np.stack(np.split(batch_x, self.batch_size))
+        batch_y = np.stack(np.split(batch_y, self.batch_size))
 
         return new_epoch, batch_x, batch_y
-
-
-dataset = Dataset(2, 3)
-dataset.preprocess("test.txt")
-dataset.create_minibatches()
-print(dataset.sorted_chars)
-print(dataset.next_minibatch())
-print(dataset.next_minibatch())
-print(dataset.next_minibatch())
-print(dataset.next_minibatch())
-print(dataset.next_minibatch())
-print(dataset.next_minibatch())

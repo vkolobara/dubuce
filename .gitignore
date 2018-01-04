@@ -113,3 +113,5 @@ mnist_data
 /lab/lab2/cifar10/
 /lab/lab2/save_tf_reg/
 /lab/lab2/models/
+data
+*.swp
