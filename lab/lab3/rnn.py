@@ -12,7 +12,7 @@ class RNN(object):
         self.W = np.random.normal(0, 1e-2, (hidden_size, hidden_size))  # ... hidden-to-hidden projection
         self.b = np.zeros((hidden_size, 1))  # ... input bias
 
-        self.V = np.random.normal(0, 1e-2, (vocab_size, hidden_size))  # ... output projection
+        self.V = np.random.normal(0, 1e-2, (hidden_size, vocab_size))  # ... output projection
         self.c = np.zeros((vocab_size, 1))  # ... output bias
 
         # memory of past gradients - rolling sum of squares for Adagrad
@@ -131,8 +131,10 @@ class RNN(object):
     def output(self, h, V, c):
         # Calculate the output probabilities of the network
         o = np.empty((h.shape[0], self.sequence_length, self.vocab_size))
+
         for t in range(h.shape[1]):
-            o[:,t,:] = np.dot(h[:,t,:], V.T) + c.T
+            o[:, t, :] = np.dot(h[:, t, :], V) + c.T
+
         return o
 
     def output_loss_and_grads(self, h, V, c, y):
@@ -160,20 +162,24 @@ class RNN(object):
 
         yhat = np.empty_like(o)
 
+        loss = 0
+
         for i in range(o.shape[1]):
             x = np.exp(o[:, i, :])
             exp_shift = np.exp(x - np.max(x, axis=1, keepdims=True))
-            yhat[:, i, :] = exp_shift / np.sum(exp_shift, axis=1, keepdims=True)
-            yhat[:,i,:] = np.clip(yhat[:,i,:], 1e-15, 1-1e-15)
+            yhat[:, i, :] = x / np.sum(x, axis=1, keepdims=True)
+            yhat[:, i, :] = np.clip(yhat[:, i, :], 1e-15, 1 - 1e-15)
 
-        # calculate the cross-entropy loss
-        loss = -np.sum(y * np.log(yhat)) / h.shape[0]
+            loss += np.mean(np.log(np.sum(x, axis=1)) - np.sum(y[:, i, :] * o[:,i,:], axis=1))
+
+        # loss = -np.mean(y * np.log(yhat))
+        # loss = -np.sum(y*np.log(yhat))
 
         # calculate the derivative of the cross-entropy softmax loss with respect to the output (o)
         dy = yhat - y
 
         # calculate the gradients with respect to the output parameters V and c
-        dV = np.einsum('nth,ntv->vh', h, dy)
+        dV = np.einsum('nth,ntv->hv', h, dy)
         # dV = np.dot(dy.T, h)
 
         # dc = np.sum(dy, axis=(0,1,2))
@@ -188,25 +194,25 @@ class RNN(object):
         last_dh = np.zeros_like(h[:, 0, :])
 
         for i in reversed(range(self.sequence_length)):
-            dh[:, i, :] = np.dot(dy[:, i, :], V)
+            dh[:, i, :] = np.dot(dy[:, i, :], V.T)
 
         return loss, dh, dV, dc
 
     def update(self, dU, dW, db, dV, dc):
         eta = 1e-8
         # update memory matrices
-        # perform the Adagrad update of parameters
-        self.memory_U += np.square(dU)
-        self.memory_W += np.square(dW)
-        self.memory_V += np.square(dV)
-        self.memory_b += np.square(db)
-        self.memory_c += np.square(dc)
+        self.memory_U += dU*dU
+        self.memory_W += dW*dW
+        self.memory_V += dV*dV
+        self.memory_b += db*db
+        self.memory_c += dc*dc
 
-        self.U -= dU * np.divide(self.learning_rate, np.sqrt(self.memory_U + eta))
-        self.W -= dW * np.divide(self.learning_rate, np.sqrt(self.memory_W + eta))
-        self.V -= dV * np.divide(self.learning_rate, np.sqrt(self.memory_V + eta))
-        self.b -= db * np.divide(self.learning_rate, np.sqrt(self.memory_b + eta))
-        self.c -= dc * np.divide(self.learning_rate, np.sqrt(self.memory_c + eta))
+        # perform the Adagrad update of parameters
+        self.U -= dU * self.learning_rate / np.sqrt(self.memory_U + eta)
+        self.W -= dW * self.learning_rate / np.sqrt(self.memory_W + eta)
+        self.V -= dV * self.learning_rate / np.sqrt(self.memory_V + eta)
+        self.b -= db * self.learning_rate / np.sqrt(self.memory_b + eta)
+        self.c -= dc * self.learning_rate / np.sqrt(self.memory_c + eta)
 
     def step(self, h0, x_oh, y_oh):
         h, cache = self.rnn_forward(x_oh, h0, self.U, self.W, self.b)
@@ -214,17 +220,44 @@ class RNN(object):
         dU, dW, db = self.rnn_backward(dh, cache)
         self.update(dU, dW, db, dV, dc)
 
-        return loss, h[:, self.sequence_length - 1, :]
+        return loss, h[:, -1, :]
 
     def sample(self, seed, n_sample):
         h0, seed_onehot, sample = None, None, None
         # inicijalizirati h0 na vektor nula
         # seed string pretvoriti u one-hot reprezentaciju ulaza
 
-        h0 = np.zeros((self.hidden_size, 1))
-        seed_onehot = np.eye(self.vocab_size)[seed]
+        h0 = np.zeros((1, self.hidden_size))
+        seed_onehot = np.eye(self.vocab_size)[seed][:]
 
-        return sample
+        h_prev = self.h0[-1][None, :]
+
+        x = list()
+        #h_prev = self.h0
+        print(seed_onehot.shape)
+        for t in range(seed_onehot.shape[0]):
+            h_prev = np.tanh(np.dot(seed_onehot[t], self.U) + np.dot(h_prev, self.W) + self.b.T)
+
+        out = self.output(h_prev[:, None, :], self.V, self.c)[-1, -1, :][None, :]
+        index = np.argmax(out)
+
+        out = np.zeros((1, self.vocab_size))
+        out[:, index] = 1
+
+        for t in range(n_sample - len(seed)):
+
+            h_t = np.tanh(np.dot(out, self.U) + np.dot(h_prev, self.W) + self.b.T)
+            out = np.dot(h_t, self.V) + self.c.T
+
+            x.append(np.argmax(out))
+            out = np.zeros((1, self.vocab_size))
+
+            out[:, x[-1]] = 1
+            #out = np.argmax(out, axis=1)
+
+            h_prev = h_t
+
+        return x
 
 
 from random import uniform
@@ -241,7 +274,7 @@ def lossFun(inputs, targets, h0, rnn):
 def gradCheck(inputs, targets, h0):
     rnn = RNN(100, 3, 4, 0.01)
 
-    num_checks, delta = 5, 1e-5
+    num_checks, delta = 20, 1e-7
 
     _, dWhy, dby, dWxh, dWhh, dbh, _ = lossFun(inputs, targets, h0, rnn)
 
@@ -286,7 +319,6 @@ def run_language_model(dataset, max_epochs, hidden_size=100, sequence_length=30,
     h0 = np.zeros((batch_size, hidden_size))
 
     average_loss = 0
-    loss = -1
 
     while current_epoch < max_epochs:
         e, x, y = dataset.next_minibatch()
@@ -295,7 +327,6 @@ def run_language_model(dataset, max_epochs, hidden_size=100, sequence_length=30,
             current_epoch += 1
             h0 = np.zeros((batch_size, hidden_size))
             # why do we reset the hidden state here?
-            print("Loss: %f" % loss)
 
         # One-hot transform the x and y batches
         x_oh, y_oh = None, None
@@ -316,8 +347,21 @@ def run_language_model(dataset, max_epochs, hidden_size=100, sequence_length=30,
         # input for the next minibatch. In this way, we artificially
         # preserve context between batches.
         loss, h0 = rnn.step(h0, x_oh, y_oh)
+        if e:
+            print("Loss at epoch %d: %f" % (current_epoch, loss))
+
+        if batch % 100 == 0:
+            print("Loss at batch %d: %f" % (batch, loss))
 
         if batch % sample_every == 0:
             # run sampling (2.2)
-            pass
+            seed = 'HAN:\nIs that good or bad?\n\n'
+            print("==============================================")
+            print(seed)
+            print("SAMPLE:")
+            rnn.h0 = h0
+            ids = rnn.sample(dataset.encode(seed), 300)
+            print(''.join(dataset.decode(ids)))
+            print("==============================================")
+
         batch += 1
