@@ -115,3 +115,4 @@ mnist_data
 /lab/lab2/models/
 data
 *.swp
+MNIST_data
