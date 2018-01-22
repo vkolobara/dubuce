@@ -185,7 +185,7 @@ init = tf.global_variables_initializer()
 
 saver = tf.train.Saver()
 
-n_epochs = 100
+n_epochs = 10
 train_writer = tf.summary.FileWriter('train', sess.graph)
 
 sess.run(init)
@@ -222,12 +222,15 @@ x_sample = mnist.test.next_batch(100)[0]
 x_reconstruct, z_out = sess.run([x_reconstr_mean_out, z], feed_dict={x: x_sample})
 
 draw_reconstructions(x_sample, x_reconstruct, z_out, (28, 28), (1, 2))  # prilagodite dimenzije prema potrebi
+plt.savefig('img/vae_reconstructions.png')
 
 # Vizualizacija raspored testnih uzoraka u 2D prostoru skrivenih varijabli - 1. način
 x_sample, y_sample = mnist.test.next_batch(5000)
 z_mu, z_sigma = sess.run((z_mean, z_log_sigma_sq), feed_dict={x: x_sample})
 
 plot_latent(z_mu, y_sample)
+plt.savefig('img/vae_latent.png')
+
 # save_latent_plot('trt.png')
 
 # Vizualizacija raspored testnih uzoraka u 2D prostoru skrivenih varijabli - 2. način
@@ -260,7 +263,7 @@ plt.yticks(np.linspace(14, 588 - 14, 11), np.round(np.linspace(3, -3, 11), 2))
 plt.xlabel('z0')
 plt.ylabel('z1')
 plt.tight_layout()
-
+plt.savefig('img/vae_latent2.png')
 
 # Vizualizacija ugašenih elemenata skrivenog sloja - 1. način
 
@@ -277,15 +280,18 @@ fig = plt.figure(figsize=(15, 4))
 
 # Vizualizacija statistike za z_mean
 boxplot_vis(1, z_mu, 'Z mean values', 'Z elemets')
+plt.savefig('img/vae_latent_mean.png')
 
 # Vizualizacija statistike za z_sigma
 ax = boxplot_vis(2, np.square(np.exp(z_sigma)), 'Z sigma values', 'Z elemets')
 ax.set_xlim([-0.05, 1.1])
+plt.savefig('img/vae_latent_sigma.png')
 
 # Vizualizacija statistike za težine ulaza u dekoder
 test = tf.get_default_graph().get_tensor_by_name("layer_d1/weights:0")
 weights_d1 = test.eval(session=sess)
 boxplot_vis(3, weights_d1.T, 'Weights to decoder', 'Z elemets')
+plt.savefig('img/vae_w2d.png')
 
 # Vizualizacija ugašenih elemenata skrivenog sloja - 2. način
 
@@ -316,9 +322,10 @@ fig = plt.figure(figsize=(15, 7))
 # 3D bar graf za z_mean
 labels = ('Samples', 'Hidden elements', 'Z mean')
 bargraph_vis(1, z_mu, [200, z_mu.shape[1]], 'g', labels)
+plt.savefig('img/vae_z_mean_3d.png')
+
 
 # 3D bar graf za težine iz z_mena u dekoder
 labels = ('Decoder elements', 'Hidden elements Z', 'Weights')
 bargraph_vis(2, weights_d1.T, weights_d1.T.shape, 'y', labels)
-
-plt.show()
+plt.savefig('img/vae_w2d_3d.png')

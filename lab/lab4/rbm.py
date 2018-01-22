@@ -163,10 +163,11 @@ vr, h1s = sess1.run([v1_prob, h1], feed_dict={X1: teX[0:Nu, :]})
 
 # vizualizacija težina
 draw_weights(w1s, v_shape, Nh, h1_shape)
+plt.savefig('img/rbm_weights.png')
 
 # vizualizacija rekonstrukcije i stanja
 draw_reconstructions(teX, vr, h1s, v_shape, h1_shape, 5)
-
+plt.savefig('img/rbm_reconstructions.png')
 
 # vizualizacija jedne rekonstrukcije s postepenim dodavanjem doprinosa aktivnih skrivenih elemenata
 def sigmoid(x):
@@ -221,6 +222,7 @@ def reconstruct(ind, states, orig, weights, biases):
 
 
 reconstruct(0, h1s, teX, w1s, vb1s)  # prvi argument je indeks znamenke u matrici znamenki
+plt.savefig('img/rbm_reconstruct.png')
 
 # Vjerojatnost da je skriveno stanje uključeno kroz Nu ulaznih uzoraka
 plt.figure()
@@ -229,11 +231,13 @@ plt.imshow(tmp, vmin=0, vmax=1, interpolation="nearest")
 plt.axis('off')
 plt.colorbar()
 plt.title('vjerojatnosti (ucestalosti) aktivacije pojedinih neurona skrivenog sloja')
+plt.savefig('img/rbm_act.png')
 
 # Vizualizacija težina sortitranih prema učestalosti
 tmp_ind = (-tmp).argsort(None)
 draw_weights(w1s[:, tmp_ind], v_shape, Nh, h1_shape)
 plt.title('Sortirane matrice tezina - od najucestalijih do najmanje koristenih')
+plt.savefig('img/rbm_sorted_w.png')
 
 # Generiranje uzoraka iz slučajnih vektora
 r_input = np.random.rand(100, Nh)
@@ -271,9 +275,9 @@ for i in range(1000):
     out_1_prob, out_1, hout1 = sess1.run((v1_prob, v1, h1), feed_dict={X1: out_1})
 
 draw_generated(r_input, hout1, out_1_prob, v_shape, h1_shape, 5)
+plt.savefig('img/rbm_draw_generated.png')
 
 # DEEP BELIEF NETWORKS
-
 
 Nh2 = Nh  # Broj elemenata drugog skrivenog sloja
 h2_shape = h1_shape
@@ -347,9 +351,11 @@ for i in range(total_batch):
 
 # vizualizacija težina
 draw_weights(w2s, h1_shape, Nh2, h2_shape, interpolation="nearest")
+plt.savefig('img/dbn_w.png')
 
 # vizualizacija rekonstrukcije i stanja
 draw_reconstructions(teX, vr2, h2downs, v_shape, h2_shape, 5)
+plt.savefig('img/dbn_reconstructions.png')
 
 # Generiranje uzoraka iz slučajnih vektora
 r_input = np.random.rand(100, Nh)
@@ -387,8 +393,8 @@ out_2 = sess2.run((v_out), feed_dict={X2: x2})
 for i in range(1000):
     out_2_prob, out_2, hout2 = sess2.run((v_out_prob, v_out, h2up), feed_dict={X2: out_2})
 
-
 draw_generated(r_input, hout2, out_2_prob, v_shape, h2_shape, 5)
+plt.savefig('img/dbn_generated.png')
 
 #
 
@@ -477,8 +483,11 @@ for i in range(total_batch):
 
 # vizualizacija težina
 draw_weights(r1_ups, v_shape, Nh, h1_shape)
+plt.savefig('img/dbn_tune_r1.png')
 draw_weights(w1_downs.T, v_shape, Nh, h1_shape)
+plt.savefig('img/dbn_tune_w1.png')
 draw_weights(w2ss, h1_shape, Nh2, h2_shape, interpolation="nearest")
+plt.savefig('img/dbn_tune_w2.png')
 
 # vizualizacija rekonstrukcije i stanja
 Npics = 5
@@ -500,6 +509,8 @@ for i in range(20):
     plt.imshow(h2_downs[i][0:Nh2].reshape(h2_shape), vmin=0, vmax=1, interpolation="nearest")
     plt.title("Top states 3")
 plt.tight_layout()
+plt.savefig('img/dbn_tune_reconstr_states.png')
+
 
 x3 = sess1.run((v1), feed_dict={X1: trX[0:5], h0:r_input})
 out_3 = sess3.run((v1_down), feed_dict={X3: x3})
@@ -509,5 +520,4 @@ for i in range(1000):
     out_3_prob, out_3, hout3 = sess3.run((v1_down_prob, v1_down, h2_up), feed_dict={X3: out_3})
 
 draw_generated(r_input, hout3, out_3_prob, v_shape, h2_shape, 5)
-
-plt.show()
+plt.savefig('img/dbn_tune_generated.png')
